@@ -13,12 +13,22 @@ struct ListView: View {
     
     var body: some View {
         NavigationView {
-            List(viewModel.itemsArr, id: \.self) { list in
-                ListRow(list: list)
+            
+            ZStack {
+                
+                List(viewModel.itemsArr, id: \.self) { list in
+                    ListRow(list: list)
+                }
+                .alert(isPresented: $viewModel.isErrorShown, content: { () -> Alert in
+                    Alert(title: Text("Error"), message: Text(viewModel.errorMessage))
+                })
+                
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle())
+                    .disabled(true)
+                    .isHidden(!viewModel.isShowLoader)
+                
             }
-            .alert(isPresented: $viewModel.isErrorShown, content: { () -> Alert in
-                Alert(title: Text("Error"), message: Text(viewModel.errorMessage))
-            })
             .navigationBarTitle(Text("List View"))
         }
         .onAppear(perform: { self.viewModel.apply(.onAppear) })

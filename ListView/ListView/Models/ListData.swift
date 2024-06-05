@@ -8,9 +8,13 @@
 import Foundation
 
 struct ListData: Decodable, Hashable {
-    var source: String?
     var abstract: String?
-    var web_url: String?
-    var headline: HeadlineData
+    var pubDate: String?
+    var headline: HeadlineData?
+    var multimedia: [MultimediaData]?
 }
 
+
+struct MultimediaData: Decodable, Hashable {
+    var url: String?
+}

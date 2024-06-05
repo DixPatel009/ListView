@@ -28,6 +28,7 @@ final class ListViewModel: ObservableObject, UnidirectionalDataFlowType {
     // MARK: Output
     @Published private(set) var itemsArr: [ListData] = []
     @Published var isErrorShown = false
+    @Published var isShowLoader = false
     @Published var errorMessage = ""
     
     //Error and Response Handler
@@ -35,29 +36,30 @@ final class ListViewModel: ObservableObject, UnidirectionalDataFlowType {
     private let errorSubject = PassthroughSubject<APIServiceError, Never>()
     
     private let apiService: APIServiceType
-    //private let trackerService: TrackerType
-   // private let experimentService: ExperimentServiceType
     
     private var cancellables: [AnyCancellable] = []
     
     init(apiService: APIServiceType = APIService()) {
         self.apiService = apiService
-
+        self.isShowLoader = true
         
         bindInputs()
         bindOutputs()
     }
     
     private func bindInputs() {
+        
+        print("bindInputs")
+        
         let request = ListRequest()
         let responsePublisher = onAppearSubject
             .flatMap { [apiService] _ in
-                apiService.response(from: request)
+                return apiService.response(from: request)
                     .catch { [weak self] error -> Empty<ListResponse, Never> in
                         self?.errorSubject.send(error)
                         return .init()
-                }
-        }
+                    }
+            }
         
         let responseStream = responsePublisher
             .share()
@@ -69,10 +71,13 @@ final class ListViewModel: ObservableObject, UnidirectionalDataFlowType {
     }
     
     private func bindOutputs() {
-        let listStream = responseSubject
-            .map { $0.response.docs }
-            .assign(to: \.itemsArr, on: self)
         
+        let listStream = responseSubject.map{ error in
+            self.isShowLoader = false
+            //Short data based on date
+            return error.response.docs.sorted(by: { $0.pubDate?.convertedDate().compare($1.pubDate?.convertedDate() ?? Date()) == .orderedDescending })
+        }.assign(to: \.itemsArr, on: self)
+                
         let errorMessageStream = errorSubject
             .map { error -> String in
                 switch error {
@@ -83,7 +88,9 @@ final class ListViewModel: ObservableObject, UnidirectionalDataFlowType {
             .assign(to: \.errorMessage, on: self)
         
         let errorStream = errorSubject
-            .map { _ in true }
+            .map { _ in
+                self.isShowLoader = false
+                return true }
             .assign(to: \.isErrorShown, on: self)
         
         
