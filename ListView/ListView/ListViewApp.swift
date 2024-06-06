@@ -9,12 +9,11 @@ import SwiftUI
 
 @main
 struct ListViewApp: App {
-    let persistenceController = PersistenceController.shared
-
+    
     var body: some Scene {
         WindowGroup {
             ListView(viewModel: .init() )
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environment(\.locale, .init(identifier: "en"))
         }
     }
 }

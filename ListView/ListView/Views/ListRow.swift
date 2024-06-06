@@ -9,12 +9,12 @@ import SwiftUI
 
 struct ListRow: View {
     
-    @State var list: ListData
+    @State var list: LocalListModel
     
     var body: some View {
-                
+        
         HStack(spacing: 8) {
-            if let image = list.multimedia?[0].url,
+            if let image = list.image,
                let url = URL(string: "https://static01.nyt.com/" + image) {
                 AsyncImage(url: url) { image in
                     image.resizable()
@@ -30,17 +30,17 @@ struct ListRow: View {
                     .foregroundColor(.gray)
             }
             VStack(alignment: .leading, spacing: 8) {
-                Text("\(list.headline?.main ?? "Loading...")")
+                Text("\(list.title ?? "Loading...")")
                     .font(.system(size: 12, weight: .heavy, design: .rounded))
-                    .redacted(reason: list.headline?.main == nil ? .placeholder : [])
-                Text("\(list.abstract ?? "")")
+                    .redacted(reason: list.title == nil ? .placeholder : [])
+                Text("\(list.subDescription ?? "")")
                     .font(.system(size: 8, design: .rounded))
-                    .redacted(reason: list.abstract == nil ? .placeholder : [])
+                    .redacted(reason: list.subDescription == nil ? .placeholder : [])
                 HStack {
                     Spacer()
-                    Text("\(list.pubDate?.convertedDateToString() ?? "")")
+                    Text("\(list.date?.convertedString() ?? "")")
                         .font(.system(size: 8, design: .rounded))
-                        .redacted(reason: list.pubDate == nil ? .placeholder : [])
+                        .redacted(reason: list.date?.convertedString() == nil ? .placeholder : [])
                 }
             }
         }
@@ -52,31 +52,13 @@ struct ListRow: View {
     }
 }
 
-//#if DEBUG
-//struct ListRow_Previews : PreviewProvider {
-//    static var previews: some View {
-//        ListRow(list:
-//                    ListData()
-//        )
-//    }
-//}
-//#endif
-
-func dateToString(date: String?) -> String? {
-print(date)
-    
-    guard let date = date else {
-        return "Dixit"
+#if DEBUG
+struct ListRow_Previews : PreviewProvider {
+    static var previews: some View {
+        ListRow(list:
+                    LocalListModel()
+        )
     }
-    
-    return "date"
-    
-//    // Create Date Formatter
-//    let dateFormatter = DateFormatter()
-//
-//    // Set Date Format
-//    dateFormatter.dateFormat = "YY/MM/dd"
-//
-//    // Convert Date to String
-//    return dateFormatter.string(from: date)
 }
+#endif
+

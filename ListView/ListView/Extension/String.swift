@@ -25,3 +25,13 @@ extension String {
     }
     
 }
+
+extension Date {
+    
+    func convertedString() -> String {
+        let dateFormatterPrint = DateFormatter()
+        dateFormatterPrint.dateFormat = "MMMM yyyy"
+        return dateFormatterPrint.string(from: self)
+    }
+    
+}

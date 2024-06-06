@@ -11,7 +11,7 @@ import Combine
 final class APIService: APIServiceType {
     
     private let baseURL: URL
-    init(baseURL: URL = URL(string: "https://api.nytimes.com/svc/search/v2/articlesearch.json?q=election&api-key=j5GCulxBywG3lX211ZAPkAB8O381S5SM")!) {
+    init(baseURL: URL = URL(string: "https://api.nytimes.com/svc/search/v2/")!) {
         self.baseURL = baseURL
     }
 

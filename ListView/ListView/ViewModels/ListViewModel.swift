@@ -26,7 +26,7 @@ final class ListViewModel: ObservableObject, UnidirectionalDataFlowType {
     }
     
     // MARK: Output
-    @Published private(set) var itemsArr: [ListData] = []
+    @Published private(set) var itemsArr: [LocalListModel] = []
     @Published var isErrorShown = false
     @Published var isShowLoader = false
     @Published var errorMessage = ""
@@ -38,19 +38,25 @@ final class ListViewModel: ObservableObject, UnidirectionalDataFlowType {
     private let apiService: APIServiceType
     
     private var cancellables: [AnyCancellable] = []
+    private let coredata = CoreDataManager()
     
     init(apiService: APIServiceType = APIService()) {
         self.apiService = apiService
         self.isShowLoader = true
         
-        bindInputs()
-        bindOutputs()
+        let arr = self.coredata.getItemList()
+        
+        if arr.count > 0 {
+            self.isShowLoader = false
+            itemsArr = arr
+        }else{
+            bindInputs()
+            bindOutputs()
+        }
     }
     
     private func bindInputs() {
-        
-        print("bindInputs")
-        
+                
         let request = ListRequest()
         let responsePublisher = onAppearSubject
             .flatMap { [apiService] _ in
@@ -74,8 +80,15 @@ final class ListViewModel: ObservableObject, UnidirectionalDataFlowType {
         
         let listStream = responseSubject.map{ error in
             self.isShowLoader = false
+            
+            for model in error.response.docs {
+                self.coredata.saveItem(title: model.headline?.main, subDescription: model.abstract, date: model.pubDate?.convertedDate(), image: model.multimedia?[0].url)
+            }
+            
+            return self.coredata.getItemList()
+            
             //Short data based on date
-            return error.response.docs.sorted(by: { $0.pubDate?.convertedDate().compare($1.pubDate?.convertedDate() ?? Date()) == .orderedDescending })
+            //return error.response.docs.sorted(by: { $0.pubDate?.convertedDate().compare($1.pubDate?.convertedDate() ?? Date()) == .orderedDescending })
         }.assign(to: \.itemsArr, on: self)
                 
         let errorMessageStream = errorSubject
